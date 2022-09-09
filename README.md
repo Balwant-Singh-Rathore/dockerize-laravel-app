@@ -5,4 +5,4 @@
     * docker-compose build
 
 ## Up Docker Container
-    * docker-compose up project name
+    * docker-compose up -d
