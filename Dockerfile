@@ -4,6 +4,9 @@ FROM php:8.1-fpm
 ARG user
 ARG uid
 
+# Set working directory
+WORKDIR /var/www
+
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
@@ -23,16 +26,20 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-#copy vhost for this application
-#COPY docker-compose/nginx/laravel9.conf /etc/nginx/conf.d/laravel9.conf
-
 # Create system user to run Composer and Artisan Commands
 RUN useradd -G www-data,root -u $uid -d /home/$user $user
 RUN mkdir -p /home/$user/.composer && \
     chown -R $user:$user /home/$user
 
-# Set working directory
-WORKDIR /var/www
+# Deployment steps
+COPY . .
+RUN cp .env.example .env
+RUN composer install --optimize-autoloader --no-dev
+RUN chown -R $user:$user \
+    /var/www/storage \
+    /var/www/bootstrap/cache
+RUN chmod +x /var/www/run.sh
+RUN bash -c "./run.sh"
 
 USER $user
 
