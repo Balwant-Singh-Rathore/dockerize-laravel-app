@@ -38,8 +38,11 @@ RUN composer install --optimize-autoloader --no-dev
 RUN chown -R $user:$user \
     /var/www/storage \
     /var/www/bootstrap/cache
-RUN chmod +x /var/www/run.sh
-RUN bash -c "./run.sh"
+#RUN php artisan migrate
+RUN php artisan route:clear
+RUN php artisan cache:clear
+RUN php artisan config:clear
+
 
 USER $user
 

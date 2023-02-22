@@ -3,7 +3,7 @@ services:
   app:
     build:
       args:
-        user: balwant
+        user: "simform"
         uid: 1000
       context: ./
       dockerfile: Dockerfile
@@ -11,6 +11,14 @@ services:
     container_name: laravel9-app
     restart: unless-stopped
     working_dir: /var/www
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=laravel_9_on_docker
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+      - DB_PORT=3306
     networks:
       - laravel9
 
@@ -23,6 +31,22 @@ services:
     volumes:
       - ./:/var/www
       - ./docker-compose/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - laravel9
+
+  db:
+    image: mysql:5.7
+    container_name: laravel-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: "laravel_9_on_docker"
+      MYSQL_ROOT_PASSWORD: "secret"
+      MYSQL_USER: "root"
+      MYSQL_PASSWORD: "secret"
+    ports:
+      - "8001:3306"
     networks:
       - laravel9
 
