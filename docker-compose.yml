@@ -12,13 +12,7 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     depends_on:
-      - db
-    environment:
-      - DB_HOST=db
-      - DB_DATABASE=laravel_9_on_docker
-      - DB_USERNAME=root
-      - DB_PASSWORD=secret
-      - DB_PORT=3306
+      - mysql
     networks:
       - laravel9
 
@@ -36,20 +30,25 @@ services:
     networks:
       - laravel9
 
-  db:
-    image: mysql:5.7
-    container_name: laravel-db
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: "laravel_9_on_docker"
-      MYSQL_ROOT_PASSWORD: "secret"
-      MYSQL_USER: "root"
-      MYSQL_PASSWORD: "secret"
+  mysql:
+    image: 'mysql/mysql-server:8.0'
     ports:
-      - "8001:3306"
+        - '${FORWARD_DB_PORT:-3307}:3306'
+    environment:
+        MYSQL_ROOT_PASSWORD: '${DB_PASSWORD}'
+        MYSQL_ROOT_HOST: '%'
+        MYSQL_DATABASE: '${DB_DATABASE}'
+        MYSQL_USER: '${DB_USERNAME}'
+        MYSQL_PASSWORD: '${DB_PASSWORD}'
+        MYSQL_ALLOW_EMPTY_PASSWORD: 1
     networks:
-      - laravel9
+        - laravel9
+    volumes:
+        - 'laravel-mysql:/var/lib/mysql'
 
 networks:
   laravel9:
     driver: bridge
+volumes:
+    laravel-mysql:
+        driver: local

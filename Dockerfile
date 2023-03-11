@@ -15,13 +15,18 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip
+    unzip \
+    netcat
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
+
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# for mysqli if you want
+#RUN docker-php-ext-install mysqli && docker-php-ext-enable mysqli
 
 # Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -33,16 +38,14 @@ RUN mkdir -p /home/$user/.composer && \
 
 # Deployment steps
 COPY . .
-RUN cp .env.example .env
 RUN composer install --optimize-autoloader --no-dev
 RUN chown -R $user:$user \
     /var/www/storage \
     /var/www/bootstrap/cache
-#RUN php artisan migrate
-RUN php artisan route:clear
-RUN php artisan cache:clear
-RUN php artisan config:clear
-
 
 USER $user
+
+COPY run.sh .
+
+#CMD /bin/sh -c "./run.sh && tail -f /dev/null"
 
